@@ -40,3 +40,4 @@ M = sparse(ipos,jpos,Mval);
 %NEED TO FIX FORCE FOR THIS PROBLEM...
 f = M*ones(param.nn,1)/param.nel;
 % This is a cheeky Harry edit:
+f = f(param.

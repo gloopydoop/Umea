@@ -42,8 +42,8 @@ param.octFilter = octFilter; %if true then use octagonal neighborhoods else
 param.order = 1;             %element order in the FE discretization
 
 % THIS IS ME BEING CHEEKY!
-param.nelx = 128*meshsize;
-param.nely = 128*meshsize;
+param.nelx = 64*meshsize;
+param.nely = 64*meshsize;
 param.nel = param.nelx*param.nely;
 
 %number of nodes in the left pipe
@@ -63,11 +63,11 @@ param.nn  = param.nnx*param.nny;
 BCs = zeros(param.nny,param.nnx);
 BCs(:,param.nnx) = 1;
 BCs(param.nny,:) = 1;
-% %define square as: square_ratio
-% square_ratio = 0.3;
-% edge = floor(param.nny*(1-square_ratio)/2);
-% 
-% BCs(edge:param.nny-edge,edge:param.nny-edge) = 1;
+%define square as: square_ratio
+square_ratio = 0.3;
+edge = floor(param.nny*(1-square_ratio/2));
+
+BCs(edge:param.nny-edge,edge:param.nny-edge) = 1;
 
 
 param.fixedNodes = BCsToIndex(BCs);

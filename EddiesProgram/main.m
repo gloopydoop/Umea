@@ -59,7 +59,9 @@ for m = 1:length(param.penal)
         %   THIS IS WHERE I ADD MY SNEAKY CHANGE
         rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{2}.^penal;
         [K] = assembleK(param,rhop);
-        u = zeros(param.nUnknowns,1);
+        % Harry edit I think this was a typo
+        %u = zeros(param.nUnknowns,1);
+        u = zeros(param.nn,1);
         u(param.comNodes) = K(param.comNodes,param.comNodes)\f(param.comNodes);
         
         if param.saveresults && mod(iter,10)==0
