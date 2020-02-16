@@ -19,6 +19,7 @@ end
 octFilter = false;
 volfrac = 0.5;
 [param] = initParam(meshsize,rFactor,octFilter);
+param.rFactor = 3;
 
 filterParam = initFilter(param,param.alpha(1));
 rho = volfrac*ones(param.nel,1);
@@ -148,6 +149,26 @@ for m = 1:length(param.penal)
                 subplot(2,2,1);
                 imagesc(reshape(1-rho,param.nely,param.nelx));
                 axis equal;axis off;
+% plot filter -------------------------------------------------------------
+                r = param.rFactor;
+                filterBoxSize = 1+2*floor(r); %2*nDiag+nVert;
+                B = ones(filterBoxSize,filterBoxSize);
+                mid = floor(r)+1;
+                for nn=1:filterBoxSize
+                    for mm = 1:filterBoxSize
+                        if norm([(nn-mid), (mm-mid)],2)>=r
+                            B(nn,mm) = 0;
+                        end
+                    end
+                end
+                background = zeros(param.nelx,param.nely);
+                background(end - 2*filterBoxSize +1:end-filterBoxSize,end - 2*filterBoxSize +1:end-filterBoxSize) = B;
+                green = cat(3, zeros(size(background)),ones(size(background)), zeros(size(background)));
+                hold on 
+                h = imshow(green); 
+                hold off 
+                set(h, 'AlphaData', background) 
+%--------------------------------------------------------------------------
                 caxis([0 1]);colormap(gray);drawnow;    
                 subplot(2,2,2);
                 imagesc(reshape(1-rhop,param.nely,param.nelx));
@@ -159,6 +180,8 @@ for m = 1:length(param.penal)
                 subplot(2,2,4);
                 imagesc(reshape(dc./dv,param.nely,param.nelx));
                 axis equal;axis off;colorbar;drawnow;
+                omega = ones(size(reshape(rhop,param.nely,param.nelx)));
+
             end
         end
         fprintf(1,'Iteration: %5d Penal: %3.1f Obj: %8.4e coDiff: %8.4e ',...
@@ -173,6 +196,8 @@ for m = 1:length(param.penal)
         disp(num2str(time2/time1*100))
     end
 end
+
+
 
 fn = sprintf('Mesh%1dR%03dfinal.mat',meshsize,round(10*rFactor));
 save(fn,'filterParam','param','rho','rhof','rhop')
