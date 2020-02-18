@@ -38,22 +38,32 @@ if HarrysVolume == true
     volfrac = volfrac*(1-param.square_ratio^2);
 end
 
+
+if param.fill_expansion == true
+    rho_omega = zeros(param.nelx+2*expansion,param.nely+2*expansion);
+    rho_omega(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = 1;
+    param.nelx_prev = param.nelx;
+    param.nely_prev = param.nely;
+    param.nelx = param.nelx + 2*expansion;
+    param.nely = param.nely + 2*expansion;
+end
+
+
 filterParam = initFilter(param,param.alpha(1));
 
 % This is where we have rho_omega
 % one means it's in the domain
 % zero means it's not in the domain
 %--------------------------------------------------------------------------
-rho_omega = zeros(param.nelx+2*expansion,param.nely+2*expansion);
-rho_omega(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = 1;
+
 
 rho = volfrac*ones(param.nel,1);
 rhof = cell(filterParam.numCascades);
 
-if fill_expansion == true
-    blank = zeros(param.nelx+2*expansion,param.nely+2*expansion);
-    blank(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = reshape(rho,param.nely,param.nelx);
-    rho = reshape(blank,(param.nely+2*expansion)*(param.nelx+2*expansion),1);
+if param.fill_expansion == true
+    blank = zeros(param.nelx,param.nely);
+    blank(expansion+1:param.nelx_prev+expansion,expansion+1:param.nely_prev+expansion) = reshape(rho,param.nely_prev,param.nelx_prev);
+    rho = reshape(blank,param.nelx*param.nely,1);
 end
 %--------------------------------------------------------------------------
 

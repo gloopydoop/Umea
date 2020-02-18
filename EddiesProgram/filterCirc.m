@@ -11,9 +11,7 @@ for nn=1:filterBoxSize
         end
     end
 end
-if param.fill_expansion == true
-    xf = filter2(B,reshape(x,param.nely + 2*param.expansion,param.nelx + 2*param.expansion));
-else
-    xf = filter2(B,reshape(x,param.nely,param.nelx));
-end
+
+xf = filter2(B,reshape(x,param.nely,param.nelx));
+
 xf = xf(:);
