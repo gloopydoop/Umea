@@ -26,13 +26,10 @@ if nargout>1
     dcda = zeros(param.nel,1);
     for nn=1:param.nelx
         for mm=1:param.nely
-            %if param.nullel(mm,nn) == 0
-                el = (nn-1)*param.nely+mm;
-                stpos = (nn-1)*param.order*param.nny + (mm-1)*param.order+1;
-                dcda(el) = -transpose(u(stpos+nList))*Kel*u(stpos+nList);
-            %else
-                %dcda(el) = 0;
-            %end
+            if param.nullel(mm,nn)
+            el = (nn-1)*param.nely+mm;
+            stpos = (nn-1)*param.order*param.nny + (mm-1)*param.order+1;
+            dcda(el) = -transpose(u(stpos+nList))*Kel*u(stpos+nList);
         end
     end
 end

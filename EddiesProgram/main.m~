@@ -18,7 +18,7 @@ clc
         meshsize = 1;
 %    end
 %end
-
+fill_expansion = true;
 HarrysVolume = true;
 octFilter = false;
 volfrac = 0.5;
@@ -30,10 +30,6 @@ rFactor = 4;
 %param.rFactor = rFactor ;
 [param] = initParam(meshsize,rFactor,octFilter);
 
-param.fill_expansion = true;
-param.expansion = 2;
-expansion = param.expansion;
-
 if HarrysVolume == true
     volfrac = volfrac*(1-param.square_ratio^2);
 end
@@ -44,6 +40,7 @@ filterParam = initFilter(param,param.alpha(1));
 % one means it's in the domain
 % zero means it's not in the domain
 %--------------------------------------------------------------------------
+expansion = 2;
 rho_omega = zeros(param.nelx+2*expansion,param.nely+2*expansion);
 rho_omega(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = 1;
 
@@ -53,7 +50,7 @@ rhof = cell(filterParam.numCascades);
 if fill_expansion == true
     blank = zeros(param.nelx+2*expansion,param.nely+2*expansion);
     blank(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = reshape(rho,param.nely,param.nelx);
-    rho = reshape(blank,(param.nely+2*expansion)*(param.nelx+2*expansion),1);
+    rho = reshape(blank,param.nely*param.nelx,1);
 end
 %--------------------------------------------------------------------------
 
@@ -88,7 +85,7 @@ for m = 1:length(param.penal)
             s{filterParam.cascade{n}.N,n});
         rhof{n} = min(1,max(rhof{n},0));
     end
-    if fill_expansion == true
+    if expansion == true
         % Clear the void region
         s{:,:}(rho_omega == 0) = 0;
     end
