@@ -10,8 +10,11 @@ x = 0:dx:dx*(param.nelx-1);
 rho = zeros(size(x));
 rho(1:floor(param.nelx/2)) = 1;
 
-param.r = 0.1/dx;
-eps = linspace(0.01,0.1,5);
+r = 0.1:0.1:0.3;
+for j = 1:length(r)
+    
+param.r = r(j)/dx;
+eps = 0.01;
 alphas = linspace(0.001,0.1,20);
 %plot(x,rho,'k');
 for m = 1:length(eps)
@@ -32,7 +35,11 @@ for n = 1:length(alphas)
     window_length(n,m) = (window(end)-window(1))/(4*param.r*dx);
 end
 end
-plot(alphas,window_length,'k')
+
+plot(alphas,window_length)
+hold on
+end
+
 xlabel('\beta')
 ylabel('Effective Smoothing (R''/4R)')
 

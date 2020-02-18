@@ -42,10 +42,11 @@ end
 if param.fill_expansion == true
     rho_omega = zeros(param.nelx+2*expansion,param.nely+2*expansion);
     rho_omega(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = 1;
-    param.nelx_prev = param.nelx;
-    param.nely_prev = param.nely;
-    param.nelx = param.nelx + 2*expansion;
-    param.nely = param.nely + 2*expansion;
+    param.nelx_exp = param.nelx + 2*expansion;
+    param.nely_exp = param.nely + 2*expansion;
+else
+    param.nelx_exp = param.nelx;
+    param.nely_exp = param.nely;
 end
 
 
@@ -61,9 +62,9 @@ rho = volfrac*ones(param.nel,1);
 rhof = cell(filterParam.numCascades);
 
 if param.fill_expansion == true
-    blank = zeros(param.nelx,param.nely);
-    blank(expansion+1:param.nelx_prev+expansion,expansion+1:param.nely_prev+expansion) = reshape(rho,param.nely_prev,param.nelx_prev);
-    rho = reshape(blank,param.nelx*param.nely,1);
+    blank = zeros(param.nelx_exp,param.nely_exp);
+    blank(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = reshape(rho,param.nely,param.nelx);
+    rho = reshape(blank,param.nelx_exp*param.nely_exp,1);
 end
 %--------------------------------------------------------------------------
 
@@ -97,10 +98,14 @@ for m = 1:length(param.penal)
         rhof{n} = filterParam.cascade{n}.g{filterParam.cascade{n}.N}( ...
             s{filterParam.cascade{n}.N,n});
         rhof{n} = min(1,max(rhof{n},0));
+
     end
-    if fill_expansion == true
-        % Clear the void region
-        s{:,:}(rho_omega == 0) = 0;
+    if param.fill_expansion == true
+        for n = 1:filterParam.numCascades
+            for k = 2:filterParam.cascade{n}.N
+                s{k,n}(reshape(rho_omega,param.nelx_exp*param.nelx_exp,1) == 0) = 0;
+            end
+        end
     end
     
     while change > 0.01 && inneriter<50

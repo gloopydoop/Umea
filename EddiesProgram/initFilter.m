@@ -57,7 +57,12 @@ else
 end
 filterParam.cascade{1}.GT = filterParam.cascade{1}.G;    
 
-oneVec = ones(param.nelx*param.nely,1);
+if param.fill_expansion == true
+    oneVec = ones(param.nelx_exp*param.nely_exp,1);
+else
+    oneVec = ones(param.nelx*param.nely,1);
+end
+
 for nn = 1:N
     filterParam.cascade{1}.Ni{nn} = filterParam.cascade{1}.G{nn}(oneVec);
 end
