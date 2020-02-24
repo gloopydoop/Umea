@@ -11,6 +11,11 @@ filterParam.cascade = cell(filterParam.numCascades,1);
 N = 2;                                  %number of filters in each cascade
 r = [1,1]*param.rFactor*param.meshsize; %radius in pixels...
 
+% HARRY BEING SNEAKY AGAIN!
+%filterParam.line_BCs = reshape((1-param.nullel),param.nelx*param.nely,1);
+filterParam.line_BCs = ones(param.nelx*param.nely,1);
+
+
 %filter 1: harmonic open
 filterParam.cascade{1}.N = N;
 filterParam.cascade{1}.radius = r;
@@ -42,27 +47,28 @@ filterParam.cascade{1}.g{2} = @(x)(1-filterParam.cascade{1}.g{1}(x));
 
 filterParam.cascade{1}.dg{1} = @(x)(-1./x.^2);
 filterParam.cascade{1}.dg{2} = @(x)(-filterParam.cascade{1}.dg{1}(x));
-    
+
+
+
 if extraFix
-    filterParam.cascade{1}.G{1} = @(x)(filterRect(x,r(1),param));
-    filterParam.cascade{1}.G{2} = @(x)(filterRect(x,r(2),param));
+    filterParam.cascade{1}.G{1} = @(x)(filterRect(x.*filterParam.line_BCs,r(1),param).*filterParam.line_BCs);
+    filterParam.cascade{1}.G{2} = @(x)(filterRect(x.*filterParam.line_BCs,r(2),param).*filterParam.line_BCs);
 else
     if param.octFilter == 0
-        filterParam.cascade{1}.G{1} = @(x)(filterCirc(x,r(1),param));
-        filterParam.cascade{1}.G{2} = @(x)(filterCirc(x,r(2),param));
+        filterParam.cascade{1}.G{1} = @(x)(filterCirc(x.*filterParam.line_BCs,r(1),param).*filterParam.line_BCs); %IM MULTIPLYING BY BCS!
+        filterParam.cascade{1}.G{2} = @(x)(filterCirc(x.*filterParam.line_BCs,r(2),param).*filterParam.line_BCs);
     else
-        filterParam.cascade{1}.G{1} = @(x)(filterOct(x,r(1),param));
-        filterParam.cascade{1}.G{2} = @(x)(filterOct(x,r(2),param));
+        filterParam.cascade{1}.G{1} = @(x)(filterOct(x.*filterParam.line_BCs,r(1),param).*filterParam.line_BCs);
+        filterParam.cascade{1}.G{2} = @(x)(filterOct(x.*filterParam.line_BCs,r(2),param).*filterParam.line_BCs);
     end
 end
 filterParam.cascade{1}.GT = filterParam.cascade{1}.G;    
 
-if param.fill_expansion == true
-    oneVec = ones(param.nelx_exp*param.nely_exp,1);
-else
-    oneVec = ones(param.nelx*param.nely,1);
-end
+% HARRY-----This is to account for interior section of rho
+oneVec = ones(param.nelx*param.nely,1);
+%oneVec = reshape(1-param.nullel,param.nelx*param.nely,1);
 
+% Now this has to be modified to INCLUDE the middle guys
 for nn = 1:N
     filterParam.cascade{1}.Ni{nn} = filterParam.cascade{1}.G{nn}(oneVec);
 end
@@ -99,8 +105,8 @@ filterParam.cascade{2}.dg{1} = filterParam.cascade{1}.dg{2};
 filterParam.cascade{2}.dg{2} = filterParam.cascade{1}.dg{1};
 
 if extraFix
-        filterParam.cascade{2}.G{1} = @(x)(filterOct(x,r(1),param));
-        filterParam.cascade{2}.G{2} = @(x)(filterOct(x,r(2),param));
+        filterParam.cascade{2}.G{1} = @(x)(filterOct(x.*filterParam.line_BCs,r(1),param).*filterParam.line_BCs);
+        filterParam.cascade{2}.G{2} = @(x)(filterOct(x.*filterParam.line_BCs,r(2),param).*filterParam.line_BCs);
 else
     filterParam.cascade{2}.G{1} = filterParam.cascade{1}.G{2};
     filterParam.cascade{2}.G{2} = filterParam.cascade{1}.G{1};

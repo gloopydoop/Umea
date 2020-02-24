@@ -23,30 +23,32 @@ HarrysVolume = true;
 octFilter = false;
 volfrac = 0.5;
 
-
-
-
-rFactor = 4;
+rFactor = 3;
 %param.rFactor = rFactor ;
 [param] = initParam(meshsize,rFactor,octFilter);
 
-param.fill_expansion = true;
-param.expansion = 2;
-expansion = param.expansion;
+% This is if I want a movie------------------------------------------------
+movie_plot = false;
+% Axis requirements
+movie_max_iterations = 50*length(param.alpha);
+movie_frameskip = 10;
+movie_max_obj = 0.5;
+movie_fig_i = 1;
+movie_figure_size = [100,100, 700,300];
+movie_filename = 'bigDog.gif';
+%movie_obj = zeros(movie_max_iterations);
+%movie_iter = zeros(movie_max_iterations);
+movie_i = 1;
+% -------------------------------------------------------------------------
+
+
+
+
+
+
 
 if HarrysVolume == true
     volfrac = volfrac*(1-param.square_ratio^2);
-end
-
-
-if param.fill_expansion == true
-    rho_omega = zeros(param.nelx+2*expansion,param.nely+2*expansion);
-    rho_omega(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = 1;
-    param.nelx_exp = param.nelx + 2*expansion;
-    param.nely_exp = param.nely + 2*expansion;
-else
-    param.nelx_exp = param.nelx;
-    param.nely_exp = param.nely;
 end
 
 
@@ -61,11 +63,6 @@ filterParam = initFilter(param,param.alpha(1));
 rho = volfrac*ones(param.nel,1);
 rhof = cell(filterParam.numCascades);
 
-if param.fill_expansion == true
-    blank = zeros(param.nelx_exp,param.nely_exp);
-    blank(expansion+1:param.nelx+expansion,expansion+1:param.nely+expansion) = reshape(rho,param.nely,param.nelx);
-    rho = reshape(blank,param.nelx_exp*param.nely_exp,1);
-end
 %--------------------------------------------------------------------------
 
 
@@ -73,20 +70,21 @@ for n = 1:filterParam.numCascades;
     rhof{n} = rho;
 end
 iter = 0;
-
 f = assembleF(param);
-
+c = 0;
 for m = 1:length(param.penal)
+    movie_iter_m(m) = iter;
+    movie_J_m(m) = c;
     
     penal = param.penal(m);
     filterParam = initFilter(param,param.alpha(m));
     
     s = cell(filterParam.Nmax,filterParam.numCascades);
 
-    change = 1.;
+    change = 1.0;
     inneriter = 0;
 
-    rho = rhof{2};
+    rho = rhof{param.filt_type};
     for n = 1:filterParam.numCascades;
         s{1,n} = filterParam.cascade{n}.G{1}(...
             filterParam.cascade{n}.f{1}(rho(:)))./filterParam.cascade{n}.Ni{1};
@@ -97,21 +95,16 @@ for m = 1:length(param.penal)
         end
         rhof{n} = filterParam.cascade{n}.g{filterParam.cascade{n}.N}( ...
             s{filterParam.cascade{n}.N,n});
-        rhof{n} = min(1,max(rhof{n},0));
+        rhof{n} = filterParam.line_BCs.*min(1,max(rhof{n},0));
 
     end
-    if param.fill_expansion == true
-        for n = 1:filterParam.numCascades
-            for k = 2:filterParam.cascade{n}.N
-                s{k,n}(reshape(rho_omega,param.nelx_exp*param.nelx_exp,1) == 0) = 0;
-            end
-        end
-    end
+
     
     while change > 0.01 && inneriter<50
         tic;
         %   THIS IS WHERE I ADD MY SNEAKY CHANGE
-        rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{2}.^penal;
+        %   THIS IS WHERE WE CHOSE OPEN OR CLOSE -> I chose open!!!
+        rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{param.filt_type}.^penal;
         [K] = assembleK(param,rhop);
         % Harry edit I think this was a typo
         %u = zeros(param.nUnknowns,1);
@@ -130,38 +123,38 @@ for m = 1:length(param.penal)
         iter = iter + 1;
         inneriter = inneriter + 1;
         if penal>1
-            dc = (1-param.weakMaterial)*penal*(rhof{1}.^(penal-1)).*dcdap;
+            dc = (1-param.weakMaterial)*penal*(rhof{param.filt_type}.^(penal-1)).*dcdap;
         else
             dc = (1-param.weakMaterial)*dcdap;
         end
-        dv = ones(param.nel,1);
-                
+        %dv = ones(param.nel,1);
+        dv = reshape((1-param.nullel),param.nelx*param.nely,1);      
         
         %% MODIFICATION OF SENSITIVITIES
         %Filter 1: open - use for compliance...
         for k = filterParam.cascade{1}.N:-1:2
-            dc(:) = filterParam.cascade{1}.df{k}( ...
+            dc(:) = filterParam.line_BCs.*filterParam.cascade{1}.df{k}( ...
                     filterParam.cascade{1}.g{k-1}(s{k-1,1})).* ...
                 filterParam.cascade{1}.GT{k}(dc(:).* ...
                     filterParam.cascade{1}.dg{k}(s{k,1})./ ...
                 filterParam.cascade{1}.Ni{k});
         end
-        dc(:) = filterParam.cascade{1}.df{1}(rho(:)) .* ...
-                filterParam.cascade{1}.GT{1}(dc(:).* ...
-                    filterParam.cascade{1}.dg{1}(s{1,1})./ ...
-                filterParam.cascade{1}.Ni{1});
+%         dc(:) = filterParam.cascade{1}.df{1}(rho(:)) .* ...
+%                 filterParam.cascade{1}.GT{1}(dc(:).* ...
+%                     filterParam.cascade{1}.dg{1}(s{1,1})./ ...
+%                 filterParam.cascade{1}.Ni{1});
         %Filter 2: close - use for volume...    
         for k = filterParam.cascade{2}.N:-1:2
-            dv(:) = filterParam.cascade{2}.df{k}( ...
+            dv(:) = filterParam.line_BCs.*filterParam.cascade{2}.df{k}( ...
                     filterParam.cascade{2}.g{k-1}(s{k-1,2})).* ...
                 filterParam.cascade{2}.GT{k}(dv(:).* ...
                     filterParam.cascade{2}.dg{k}(s{k,1})./ ...
                 filterParam.cascade{2}.Ni{k});
         end
-        dv(:) = filterParam.cascade{2}.df{1}(rho(:)) .* ...
-                filterParam.cascade{2}.GT{1}(dv(:).* ...
-                    filterParam.cascade{2}.dg{1}(s{1,2})./ ...
-                filterParam.cascade{2}.Ni{1});
+%         dv(:) = filterParam.cascade{2}.df{1}(rho(:)) .* ...
+%                 filterParam.cascade{2}.GT{1}(dv(:).* ...
+%                     filterParam.cascade{2}.dg{1}(s{1,2})./ ...
+%                 filterParam.cascade{2}.Ni{1});
 
         %%OC UPDATE
         l1 = 0; l2 = 1e16;
@@ -194,11 +187,12 @@ for m = 1:length(param.penal)
                         filterParam.cascade{n}.g{k-1}(s{k-1,n})) )./ ...
                         filterParam.cascade{n}.Ni{k};
                 end
-                rhof{n} = filterParam.cascade{n}.g{filterParam.cascade{n}.N}( ...
+                % This is me being dodgy!
+                rhof{n} = filterParam.line_BCs.*filterParam.cascade{n}.g{filterParam.cascade{n}.N}( ...
                     s{filterParam.cascade{n}.N,n});
                 rhof{n} = min(1,max(rhof{n},0));
             end
-            if mean(rhof{2}) > volfrac
+            if mean(rhof{param.filt_type}) > volfrac
                 l1 = lmid;
             else
                 l2 = lmid;
@@ -206,7 +200,56 @@ for m = 1:length(param.penal)
             
         end
         change = max(abs(rho-rhonew));
-        t2 = tic;        
+        t2 = tic; 
+        % This is the movie stuff!!! --------------------------------------
+        if movie_plot
+            movie_obj(movie_i) = c;
+            movie_iter(movie_i) = iter;
+            movie_i = movie_i + 1;
+            if mod(iter,movie_frameskip) == 0
+                if movie_fig_i == 1
+                    movie_fig = figure('position',[100,100, 700,300]);
+                end
+                axis tight manual
+                subplot(1,3,1)
+                plot_filter(param, rho)
+                
+                subplot(1,3,2)
+                plot(movie_iter,movie_obj,'k')
+                axis([0, movie_max_iterations, 0, movie_max_obj])
+                xlabel('Iteration')
+                ylabel('J')
+                grid on
+                hold on
+                if m > 1
+                    plot(movie_iter_m(2:end),movie_J_m(2:end),'ro')
+                end
+                drawnow;
+                
+                subplot(1,3,3)
+                semilogy(param.penal,param.alpha,'k-o','MarkerFaceColor','w')
+                hold on
+                semilogy(param.penal(1:m),param.alpha(1:m),'ko','MarkerFaceColor','r')
+                grid on
+                axis([min(param.penal)-1, max(param.penal) + 1, min(param.alpha)/10, max(param.alpha)*10])
+                xlabel('p')
+                ylabel('\beta')
+                drawnow;
+                hold off
+                frame = getframe(movie_fig); 
+                im = frame2im(frame); 
+                [imind,cm] = rgb2ind(im,256); 
+                % Write to the GIF File
+                if movie_fig_i == 1
+                    imwrite(imind,cm,movie_filename,'gif', 'Loopcount',inf);
+                else
+                    imwrite(imind,cm,movie_filename,'gif','WriteMode','append');
+                end
+                movie_fig_i = movie_fig_i + 1;
+                
+            end
+        end
+        
         if param.plotDesign
             x_center = linspace(1/param.nelx/2,1-1/param.nelx/2,param.nelx);
             y_center = linspace(1/param.nely/2,1-1/param.nely/2,param.nely);
@@ -250,12 +293,23 @@ for m = 1:length(param.penal)
                 axis equal;axis off;
                 caxis([0 1]);colormap(gray);drawnow;
                 subplot(2,2,3);
-                imagesc(reshape(rhof{2}-rhof{1},param.nely,param.nelx));
+                
+                imagesc(x_center,y_center,reshape(rhof{2}-rhof{1},param.nely,param.nelx));
+                %imagesc(x_center,y_center,reshape(filterParam.cascade{2}.Ni{k},param.nely,param.nelx));
+                hold on
+                h = imagesc(x_center,y_center,blue); 
+                set(h, 'AlphaData', param.nullel/2) 
+                hold off
                 axis equal;axis off;colorbar;drawnow;
+                
                 subplot(2,2,4);
-                imagesc(reshape(dc./dv,param.nely,param.nelx));
-                axis equal;axis off;colorbar;drawnow;
+                imagesc(x_center,y_center,reshape(dc./dv,param.nely,param.nelx));
                 omega = ones(size(reshape(rhop,param.nely,param.nelx)));
+                hold on
+                h = imagesc(x_center,y_center,blue); 
+                set(h, 'AlphaData', param.nullel/2) 
+                hold off
+                axis equal;axis off;colorbar;drawnow;
 
             end
         end

@@ -42,14 +42,17 @@ param.octFilter = octFilter; %if true then use octagonal neighborhoods else
 param.order = 1;             %element order in the FE discretization
 
 % THIS IS ME BEING CHEEKY!
-param.nelx = 32*meshsize;
-param.nely = 32*meshsize;
+param.nelx = 64*meshsize;
+param.nely = 64*meshsize;
 param.nel = param.nelx*param.nely;
 
 %number of nodes in the left pipe
 param.nnx = param.nelx*param.order+1;
 param.nny = param.nely*param.order+1;
 param.nn  = param.nnx*param.nny;
+
+% HARRY. FILT_TYPE = 1 FOR OPEN. 2 FOR CLOSE
+param.filt_type = 2;
 
 %% harry edit
 %Fix 1/8 of the left hand boundary...%(zero-Dirichlet condition)
@@ -93,7 +96,7 @@ param.ocSmooth = 1/2;  %OC smoothing parameter (default = 1/2)
 %% My changes to this
 penal1 = 1:0.5:3;
 alpha1 = 10*ones(size(penal1));
-alpha2 = 10.^(2:-1:-4);
+alpha2 = 10.^(1:-1:-4);
 penal2 = 3*ones(size(alpha2));
 param.penal = [penal1,penal2];  %SIMP penalty paramter (default = 3)
 param.alpha = [alpha1,alpha2];
@@ -117,4 +120,4 @@ param.coPower = 2;
 param.saveresults = false;
 param.plotDesign = true;
 
-param.plotmod = 10;
+param.plotmod = 1;
