@@ -23,12 +23,12 @@ HarrysVolume = true;
 octFilter = false;
 volfrac = 0.5;
 
-rFactor = 3;
+rFactor = 4;
 %param.rFactor = rFactor ;
 [param] = initParam(meshsize,rFactor,octFilter);
 
 % This is if I want a movie------------------------------------------------
-movie_plot = false;
+movie_plot = true;
 % Axis requirements
 movie_max_iterations = 50*length(param.alpha);
 movie_frameskip = 10;
@@ -127,8 +127,8 @@ for m = 1:length(param.penal)
         else
             dc = (1-param.weakMaterial)*dcdap;
         end
-        %dv = ones(param.nel,1);
-        dv = reshape((1-param.nullel),param.nelx*param.nely,1);      
+        dv = ones(param.nel,1);
+        %dv = reshape((1-param.nullel),param.nelx*param.nely,1);      
         
         %% MODIFICATION OF SENSITIVITIES
         %Filter 1: open - use for compliance...

@@ -52,7 +52,7 @@ param.nny = param.nely*param.order+1;
 param.nn  = param.nnx*param.nny;
 
 % HARRY. FILT_TYPE = 1 FOR OPEN. 2 FOR CLOSE
-param.filt_type = 2;
+param.filt_type = 1;
 
 %% harry edit
 %Fix 1/8 of the left hand boundary...%(zero-Dirichlet condition)
@@ -118,6 +118,6 @@ param.coPower = 2;
 
 
 param.saveresults = false;
-param.plotDesign = true;
+param.plotDesign = false;
 
-param.plotmod = 1;
+param.plotmod = 20;

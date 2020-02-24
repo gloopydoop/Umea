@@ -12,8 +12,8 @@ N = 2;                                  %number of filters in each cascade
 r = [1,1]*param.rFactor*param.meshsize; %radius in pixels...
 
 % HARRY BEING SNEAKY AGAIN!
-%filterParam.line_BCs = reshape((1-param.nullel),param.nelx*param.nely,1);
-filterParam.line_BCs = ones(param.nelx*param.nely,1);
+filterParam.line_BCs = reshape((1-param.nullel),param.nelx*param.nely,1);
+%filterParam.line_BCs = ones(param.nelx*param.nely,1);
 
 
 %filter 1: harmonic open
@@ -71,6 +71,7 @@ oneVec = ones(param.nelx*param.nely,1);
 % Now this has to be modified to INCLUDE the middle guys
 for nn = 1:N
     filterParam.cascade{1}.Ni{nn} = filterParam.cascade{1}.G{nn}(oneVec);
+    filterParam.cascade{1}.Ni{nn}(filterParam.cascade{1}.Ni{nn}==0) = 1;
 end
 
 %filter 2: harmonic close
