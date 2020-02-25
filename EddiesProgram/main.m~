@@ -23,7 +23,7 @@ HarrysVolume = true;
 octFilter = false;
 volfrac = 0.5;
 
-rFactor = 5;
+rFactor = 2;
 %param.rFactor = rFactor ;
 [param] = initParam(meshsize,rFactor,octFilter);
 
@@ -228,12 +228,9 @@ for m = 1:length(param.penal)
                     end
                     
                     if param.filt_type == 1
-                        str_filt = 'Open';
-                    else
-                        str_filt = 'Close';
-                    end
+                        str_filt = '
                     movie_fig = figure('position',movie_figure_size);
-                                       
+                    title([]
                 end
                 axis tight manual
                 subplot(1,3,1)
@@ -254,7 +251,6 @@ for m = 1:length(param.penal)
                 end
                 end
                 hold off
-                title([str_filt,' filter, ',str_boundary]);
                 drawnow;
                 
                 subplot(1,3,3)

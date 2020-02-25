@@ -27,12 +27,15 @@ njList = reshape(repmat(nList,(param.order+1)^2,1),  ...
 Melv = reshape(Mel,1,(param.order+1)^4);
 for nn=1:param.nelx
     for mm=1:param.nely
-        el = (nn-1)*param.nely+mm;
-        pos = ((el-1)*(param.order+1)^4 + 1) : (el*(param.order+1)^4);
-        stpos = (nn-1)*param.order*param.nny + (mm-1)*param.order+1;
-        ipos(pos) = stpos + niList;
-        jpos(pos) = stpos + njList;
-        Mval(pos) = Melv;
+        % HARRY: you are only considering things in the BC
+        if param.nullel(param.nelx,param.nely) == 0
+            el = (nn-1)*param.nely+mm;
+            pos = ((el-1)*(param.order+1)^4 + 1) : (el*(param.order+1)^4);
+            stpos = (nn-1)*param.order*param.nny + (mm-1)*param.order+1;
+            ipos(pos) = stpos + niList;
+            jpos(pos) = stpos + njList;
+            Mval(pos) = Melv;
+        end
     end
 end
 M = sparse(ipos,jpos,Mval);

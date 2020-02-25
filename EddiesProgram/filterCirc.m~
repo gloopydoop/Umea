@@ -1,0 +1,45 @@
+function [xf,B] = filterCirc(x,r,param)
+% HARRY BEING SNEAKY AGAIN!
+if param.BC_padding == 1
+    pad = param.rFactor + 1;
+    sizex = param.nelx +2*pad;
+    sizey = param.nely +2*pad;
+    background = zeros(sizey,sizex);
+    x(find(filterParam.line_BCs == 0)) = 0;
+    background(pad+1:end-pad,pad+1:end-pad) = reshape(x,param.nely,param.nelx);
+    x = reshape(background,(param.nelx +2*pad)*(param.nely +2*pad),1);
+    % Corners
+    %background(1:pad,1:pad) = x(1,1)*ones(pad,pad);                 %NW
+    %background(1:pad,end-pad:end) = x(1,end)*ones(pad,pad);         %NE
+    %background(end-pad:end,1:pad) = x(end,1)*ones(pad,pad);         %SW
+    %background(end-pad:end,end-pad:pad) = x(end,end)*ones(pad,pad); %SW
+    % Sides
+    
+else
+    %filterParam.line_BCs = ones(param.nelx*param.nely,1);
+    % We set the interior be zero
+    x(find(filterParam.line_BCs == 0)) = 0;
+    sizex = param.nelx;
+    sizey = param.nely;
+end
+
+
+filterBoxSize = 1+2*floor(r); %2*nDiag+nVert;
+
+B = ones(filterBoxSize,filterBoxSize);
+mid = floor(r)+1;
+for nn=1:filterBoxSize
+    for mm = 1:filterBoxSize
+        if norm([(nn-mid), (mm-mid)],2)>=r
+            B(nn,mm) = 0;
+        end
+    end
+end
+
+xf = filter2(B,reshape(x,sizey,sizex));
+
+if param.BC_padding == 1
+    xf = xf(pad+1:end-pad,)
+% again being sneaky
+xf(find(filterParam.line_BCs == 0)) = 0;
+xf = xf(:);
