@@ -58,7 +58,7 @@ param.filt_type = 1;
 % 1) for padding with edge values (edge values = 0)
 % 2) for ignoring boundaires 
 % 3) Potentially "extend" according to Wikipedia
-param.boundary_treatment = 1;
+param.boundary_treatment = 2;
 
 
 % this is my sneaky padding:
@@ -119,6 +119,14 @@ alpha2 = 10.^(1:-1:-5);
 penal2 = 3*ones(size(alpha2));
 param.penal = [penal1,penal2];  %SIMP penalty paramter (default = 3)
 param.alpha = [alpha1,alpha2];
+
+% here is another path
+% penal1 = linspace(1,3,8);
+% alpha1 = 10.^(linspace(1,-1,8));
+% alpha2 = 10.^(-1.5:-0.5:-5);
+% penal2 = 3*ones(size(alpha2));
+% param.penal = [penal1,penal2];  %SIMP penalty paramter (default = 3)
+% param.alpha = [alpha1,alpha2];
 
 % penal1 = 1:0.5:3;
 % alpha1 = 10*ones(size(penal1));
