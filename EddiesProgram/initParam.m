@@ -35,6 +35,9 @@ if nargin<3
     end
 end
 
+
+param.maxiter = 150;
+
 param.meshsize = meshsize;   %meshsize
 param.rFactor = rFactor;     %factor used to determing filter radius...
 param.octFilter = octFilter; %if true then use octagonal neighborhoods else
@@ -42,8 +45,8 @@ param.octFilter = octFilter; %if true then use octagonal neighborhoods else
 param.order = 1;             %element order in the FE discretization
 
 % THIS IS ME BEING CHEEKY!
-param.nelx = 128*meshsize;
-param.nely = 128*meshsize;
+param.nelx = 64*meshsize;
+param.nely = 64*meshsize;
 param.nel = param.nelx*param.nely;
 
 %number of nodes in the left pipe
@@ -52,7 +55,7 @@ param.nny = param.nely*param.order+1;
 param.nn  = param.nnx*param.nny;
 
 % HARRY. FILT_TYPE = 1 FOR OPEN. 2 FOR CLOSE
-param.filt_type = 1;
+param.filt_type = 2;
 
 % HARRY. 
 % 1) for padding with edge values (edge values = 0)
@@ -110,15 +113,21 @@ param.nUnknowns = length(param.comNodes);
 param.weakMaterial = 0.001;
 
 
-param.ocSmooth = 1/2;  %OC smoothing parameter (default = 1/2)
+param.ocSmooth = 0.5;  %OC smoothing parameter (default = 1/2)
 
 %% My changes to this
 penal1 = 1:0.5:3;
 alpha1 = 10*ones(size(penal1));
-alpha2 = 10.^(1:-1:-5);
+alpha2 = logspace(1,-5,10);
+%alpha1 = 10;
+%penal1 = 3;
 penal2 = 3*ones(size(alpha2));
+%alpha2 = [];
+%penal2 = [];
 param.penal = [penal1,penal2];  %SIMP penalty paramter (default = 3)
 param.alpha = [alpha1,alpha2];
+param.moves = 0.2*ones(size(param.alpha));
+%param.moves(7:end) = 0.005;
 
 % here is another path
 % penal1 = linspace(1,3,8);

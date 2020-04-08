@@ -2,7 +2,7 @@ clear all
 clc
 close all
 
-dx = 0.001;
+dx = 0.0005;
 L = 1;
 [param] = initParam2D(L/dx);
 
@@ -10,11 +10,12 @@ x = 0:dx:dx*(param.nelx-1);
 rho = zeros(size(x));
 rho(1:floor(param.nelx/2)) = 1;
 
-r = 0.1:0.1:0.3;
+legstr = {};
+r = 0.1:0.05:0.2;
 for j = 1:length(r)
     
-param.r = r(j)/dx;
-eps = 0.01;
+param.r = int32(r(j)/dx);
+eps = [0.01, 0.001];
 alphas = linspace(0.001,0.1,20);
 %plot(x,rho,'k');
 for m = 1:length(eps)
@@ -32,17 +33,20 @@ for n = 1:length(alphas)
     %plot(x,s{2,n})
     window = x(s{2,n} < 1- param.eps & s{2,n} > param.eps);
     %plot([window(1), window(end)],[1+0.1*n,1+0.1*n])
-    window_length(n,m) = (window(end)-window(1))/(4*param.r*dx);
+    window_length(n,m,j) = (window(end)-window(1))/(4*double(param.r)*dx);
 end
+end
+plot(alphas,window_length(:,:,j))
+hold on
+legstr = {legstr{:}, ['R = ',num2str(r(j))]}
 end
 
-plot(alphas,window_length)
-hold on
-end
+
+
 
 xlabel('\beta')
 ylabel('Effective Smoothing (R''/4R)')
-
+legend(num2str(r))
     
 %plot([x(floor(param.nelx/2)),x(floor(param.nelx/2)+param.r)],[-0.1,-0.1],'k')
 %text(mean([x(floor(param.nelx/2)),x(floor(param.nelx/2)+param.r)]),-0.05,'R','HorizontalAlignment','center')

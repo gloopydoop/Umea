@@ -15,7 +15,7 @@ clc
 %if nargin<2
  %   rFactor = 5;
 %    if nargin<1
-        meshsize = 1;
+        meshsize = 4;
 %    end
 %end
 
@@ -23,19 +23,27 @@ HarrysVolume = true;
 octFilter = false;
 volfrac = 0.5;
 
-rFactor = 1;
+rFactor = 4;
 %param.rFactor = rFactor ;
 [param] = initParam(meshsize,rFactor,octFilter);
 
 % This is if I want a movie------------------------------------------------
 movie_plot = true;
 % Axis requirements
-movie_max_iterations = 50*length(param.alpha);
-movie_frameskip = 10;
-movie_max_obj = 0.7;
+movie_max_iterations = param.maxiter*length(param.alpha);
+movie_frameskip = 25;
+movie_max_obj = 0.15;
 movie_fig_i = 1;
-movie_figure_size = [100,100, 1100,300];
+movie_max_MND = 60;
+
 movie_filename = 'bigDog.gif';
+right_plot = true;
+title_plot = false;
+if right_plot == true
+    movie_figure_size = [100,100, 1400,300];
+else
+    movie_figure_size = [100,100, 700,300]*2;
+end
 %movie_obj = zeros(movie_max_iterations);
 %movie_iter = zeros(movie_max_iterations);
 movie_i = 1;
@@ -101,13 +109,15 @@ for m = 1:length(param.penal)
         rhof{n} = remove_padding(rhof{n},param);
 
     end
-    rho = remove_padding(rho,param);
+    rhof{param.filt_type} = remove_padding(rhof{param.filt_type},param);
     
-    while change > 0.01 && inneriter<50
+    while change > 0.01 && inneriter<param.maxiter
         tic;
         %   THIS IS WHERE I ADD MY SNEAKY CHANGE
         %   THIS IS WHERE WE CHOSE OPEN OR CLOSE -> I chose open!!!
-        rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{param.filt_type}.^penal;
+        %rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{param.filt_type}.^penal;
+        rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{1}.^penal;
+
         [K] = assembleK(param,rhop);
         % Harry edit I think this was a typo
         %u = zeros(param.nUnknowns,1);
@@ -126,7 +136,8 @@ for m = 1:length(param.penal)
         iter = iter + 1;
         inneriter = inneriter + 1;
         if penal>1
-            dc = (1-param.weakMaterial)*penal*(rhof{param.filt_type}.^(penal-1)).*dcdap;
+            %dc = (1-param.weakMaterial)*penal*(rhof{param.filt_type}.^(penal-1)).*dcdap;
+            dc = (1-param.weakMaterial)*penal*(rhof{1}.^(penal-1)).*dcdap;
         else
             dc = (1-param.weakMaterial)*dcdap;
         end
@@ -160,14 +171,26 @@ for m = 1:length(param.penal)
         dv(:) = filterParam.cascade{2}.df{1}(rho(:)) .* ...
                 filterParam.cascade{2}.GT{1}(dv(:).* ...
                     filterParam.cascade{2}.dg{1}(s{1,2})./ ...
-                filterParam.cascade{2}.Ni{1});
+                filterParam.cascade{2}.Ni{1});        
+            
+%         for k = filterParam.cascade{1}.N:-1:2
+%             dv(:) = filterParam.cascade{1}.df{k}( ...
+%                     filterParam.cascade{1}.g{k-1}(s{k-1,1})).* ...
+%                 filterParam.cascade{1}.GT{k}(dv(:).* ...
+%                     filterParam.cascade{1}.dg{k}(s{k,1})./ ...
+%                 filterParam.cascade{1}.Ni{k});
+%         end
+%         dv(:) = filterParam.cascade{1}.df{1}(rho(:)) .* ...
+%                 filterParam.cascade{1}.GT{1}(dv(:).* ...
+%                     filterParam.cascade{1}.dg{1}(s{1,1})./ ...
+%                 filterParam.cascade{1}.Ni{1});
 
         dv = remove_padding(dv,param);
         dc = remove_padding(dc,param);
         rho = remove_padding(rho,param);
         %%OC UPDATE
         l1 = 0; l2 = 1e16;
-        move = 0.2;
+        move = param.moves(m);
         while l2-l1 > l2*1e-12;
             lmid = 0.5*(l2+l1);
             
@@ -212,10 +235,16 @@ for m = 1:length(param.penal)
             end            
             
         end
-        change = max(abs(rho-rhonew));
+        change = max(abs(rho-rhonew))*0.2/param.moves(m); %SNEAKY
         t2 = tic; 
         % This is the movie stuff!!! --------------------------------------
         if movie_plot
+            if right_plot == false
+            numsubplots = 2;
+            else
+            numsubplots = 3;
+            end
+            movie_MND(movie_i) = 400*rhop'*(1-rhop)/param.nel;
             movie_obj(movie_i) = c;
             movie_iter(movie_i) = iter;
             movie_i = movie_i + 1;
@@ -232,18 +261,23 @@ for m = 1:length(param.penal)
                     else
                         str_filt = 'Close';
                     end
-                    movie_fig = figure('position',movie_figure_size);
+                    movie_fig = figure('position',movie_figure_size,'color','w');
                                        
                 end
                 axis tight manual
-                subplot(1,3,1)
+                subplot(1,numsubplots,1)
                 plot_filter(param, rho)
                 
-                subplot(1,3,2)
-                plot(movie_iter,movie_obj,'k')
-                axis([0, movie_max_iterations, 0, movie_max_obj])
+                fig = subplot(1,numsubplots,2);
+                
+                left_color = [0,0,0];
+                right_color = [0,87/256,159/256];
+                yyaxis left
+                plot(movie_iter,movie_obj,'color',left_color)
+                xlim([0, movie_max_iterations])
+                ylim([0, movie_max_obj])
                 xlabel('Iteration')
-                ylabel('Obj')
+                ylabel('Objective Function')
                 grid on
                 hold on
                 if m > 1
@@ -254,23 +288,40 @@ for m = 1:length(param.penal)
                 end
                 end
                 hold off
+                
+                yyaxis right
+                plot(movie_iter,movie_MND,'color',right_color,'linestyle','-');
+                ylim([0,movie_max_MND])
+                ylabel('MND (Measure of black and whiteness)')
+                yticks = [get(gca,'ytick')]';
+                percentsy = repmat('%', length(yticks),1);
+                yticklabel = [num2str(yticks) percentsy];
+                set(gca,'yticklabel',yticklabel) 
+                ax = gca;
+                ax.YAxis(1).Color = left_color;
+                ax.YAxis(2).Color = right_color;
+                
+                if title_plot == true
                 title([str_filt,' filter, ',str_boundary]);
+                end
                 drawnow;
                 
-                subplot(1,3,3)
-                semilogy(param.penal,param.alpha,'k-o','MarkerFaceColor','w')
-                hold on
-                semilogy(param.penal(1:m),param.alpha(1:m),'ko','MarkerFaceColor','r')
-                for mm = 1:m
-                text(param.penal(mm),param.alpha(mm),num2str(mm),...
-                    'horizontalAlignment','center','verticalAlignment','top')
+                if right_plot == true
+                    subplot(1,numsubplots,3)
+                    semilogy(param.penal,param.alpha,'k-o','MarkerFaceColor','w')
+                    hold on
+                    semilogy(param.penal(1:m),param.alpha(1:m),'ko','MarkerFaceColor','r')
+                    for mm = 1:m
+                    text(param.penal(mm),param.alpha(mm),num2str(mm),...
+                        'horizontalAlignment','center','verticalAlignment','top')
+                    end
+                    grid on
+                    axis([min(param.penal)-1, max(param.penal) + 1, min(param.alpha)/10, max(param.alpha)*10])
+                    xlabel('p')
+                    ylabel('\beta')
+                    drawnow;
+                    hold off
                 end
-                grid on
-                axis([min(param.penal)-1, max(param.penal) + 1, min(param.alpha)/10, max(param.alpha)*10])
-                xlabel('p')
-                ylabel('\beta')
-                drawnow;
-                hold off
                 frame = getframe(movie_fig); 
                 im = frame2im(frame); 
                 [imind,cm] = rgb2ind(im,256); 
