@@ -3,6 +3,7 @@ if nargin<3
     extraFix = false;
 end
 
+
 filterParam.numCascades = 2;
 filterParam.Nmax = 2; %maximum number of filters in any cascade
 filterParam.cascade = cell(filterParam.numCascades,1);

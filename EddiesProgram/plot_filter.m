@@ -40,4 +40,6 @@ plot((x_node(end) + line_thickness*dx)*ones(size(x_node)),y_node,'LineWidth',5*l
 %plot(x_node,y_node(1)*ones(size(x_node)),'r','LineWidth',3) 
 %plot(x_node(1)*ones(size(x_node)),y_node,'r','LineWidth',3) 
 hold off
- caxis([0 1]);colormap(gray);drawnow;
+ caxis([0 1]);
+ colormap(gray);
+ drawnow;

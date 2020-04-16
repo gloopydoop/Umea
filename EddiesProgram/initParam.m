@@ -36,7 +36,7 @@ if nargin<3
 end
 
 
-param.maxiter = 150;
+param.maxiter = 75;
 
 param.meshsize = meshsize;   %meshsize
 param.rFactor = rFactor;     %factor used to determing filter radius...
@@ -55,7 +55,7 @@ param.nny = param.nely*param.order+1;
 param.nn  = param.nnx*param.nny;
 
 % HARRY. FILT_TYPE = 1 FOR OPEN. 2 FOR CLOSE
-param.filt_type = 2;
+param.filt_type = 1;
 
 % HARRY. 
 % 1) for padding with edge values (edge values = 0)
@@ -90,6 +90,7 @@ param.BCs(:,param.nnx) = 1;
 param.BCs(param.nny,:) = 1;
 % %define square as: square_ratio
  param.square_ratio = 0.3;
+  %param.square_ratio = 0;
  edge = floor(param.nny*(1-param.square_ratio)/2);
 % 
  param.BCs(edge:param.nny-edge+1,edge:param.nny-edge+1) = 1;
@@ -113,21 +114,26 @@ param.nUnknowns = length(param.comNodes);
 param.weakMaterial = 0.001;
 
 
-param.ocSmooth = 0.5;  %OC smoothing parameter (default = 1/2)
+param.ocSmooth = 0.3;  %OC smoothing parameter (default = 1/2)
 
 %% My changes to this
 penal1 = 1:0.5:3;
-alpha1 = 10*ones(size(penal1));
-alpha2 = logspace(1,-5,10);
-%alpha1 = 10;
-%penal1 = 3;
+%alpha1 = 10*ones(size(penal1));
+alpha2 = linspace(1,0.1,15);
+alpha1 = [10,5];
+penal1 = 3*ones(size(alpha1));
 penal2 = 3*ones(size(alpha2));
-%alpha2 = [];
-%penal2 = [];
-param.penal = [penal1,penal2];  %SIMP penalty paramter (default = 3)
-param.alpha = [alpha1,alpha2];
+alpha3 = logspace(-1,-8,7);
+%alpha3 = linspace(0.05,0.0005,5);
+penal3 = 3*ones(size(alpha3));
+alpha2 = [1,0.1];
+penal2 = 3*ones(size(alpha2));
+%alpha3 = [];
+%penal3 = [];
+param.penal = [penal1,penal2,penal3];  %SIMP penalty paramter (default = 3)
+param.alpha = [alpha1,alpha2,alpha3];
 param.moves = 0.2*ones(size(param.alpha));
-%param.moves(7:end) = 0.005;
+%param.moves(6:end) = 0.01;
 
 % here is another path
 % penal1 = linspace(1,3,8);

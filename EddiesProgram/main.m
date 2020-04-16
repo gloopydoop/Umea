@@ -15,11 +15,11 @@ clc
 %if nargin<2
  %   rFactor = 5;
 %    if nargin<1
-        meshsize = 4;
+        meshsize = 3;
 %    end
 %end
 
-HarrysVolume = true;
+HarrysVolume = false;
 octFilter = false;
 volfrac = 0.5;
 
@@ -31,8 +31,8 @@ rFactor = 4;
 movie_plot = true;
 % Axis requirements
 movie_max_iterations = param.maxiter*length(param.alpha);
-movie_frameskip = 25;
-movie_max_obj = 0.15;
+movie_frameskip = 10;
+movie_max_obj = 0.4;
 movie_fig_i = 1;
 movie_max_MND = 60;
 
@@ -87,12 +87,15 @@ for m = 1:length(param.penal)
     penal = param.penal(m);
     filterParam = initFilter(param,param.alpha(m));
     
-    s = cell(filterParam.Nmax,filterParam.numCascades);
+    
 
     change = 1.0;
     inneriter = 0;
 
-    rho = rhof{param.filt_type};
+%if m == 1
+    s = cell(filterParam.Nmax,filterParam.numCascades);
+    rho = rhof{param.filt_type}; 
+    rho = rhof{2}; % THEY PICK THE CLOSE HERE
     % Harry being sneaky!
     rho = start_padding(rho(:),param);
     for n = 1:filterParam.numCascades;
@@ -110,13 +113,14 @@ for m = 1:length(param.penal)
 
     end
     rhof{param.filt_type} = remove_padding(rhof{param.filt_type},param);
-    
+    %rho = rhof{param.filt_type}; % THIS one is sketch
+%end
     while change > 0.01 && inneriter<param.maxiter
         tic;
         %   THIS IS WHERE I ADD MY SNEAKY CHANGE
         %   THIS IS WHERE WE CHOSE OPEN OR CLOSE -> I chose open!!!
-        %rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{param.filt_type}.^penal;
-        rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{1}.^penal;
+        rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{param.filt_type}.^penal;
+        %rhop = param.weakMaterial + (1-param.weakMaterial)*rhof{1}.^penal;
 
         [K] = assembleK(param,rhop);
         % Harry edit I think this was a typo
@@ -136,8 +140,8 @@ for m = 1:length(param.penal)
         iter = iter + 1;
         inneriter = inneriter + 1;
         if penal>1
-            %dc = (1-param.weakMaterial)*penal*(rhof{param.filt_type}.^(penal-1)).*dcdap;
-            dc = (1-param.weakMaterial)*penal*(rhof{1}.^(penal-1)).*dcdap;
+            dc = (1-param.weakMaterial)*penal*(rhof{param.filt_type}.^(penal-1)).*dcdap;
+            %dc = (1-param.weakMaterial)*penal*(rhof{1}.^(penal-1)).*dcdap;
         else
             dc = (1-param.weakMaterial)*dcdap;
         end
@@ -156,34 +160,23 @@ for m = 1:length(param.penal)
                     filterParam.cascade{1}.dg{k}(s{k,1})./ ...
                 filterParam.cascade{1}.Ni{k});
         end
-        dc(:) = filterParam.cascade{1}.df{1}(rho(:)) .* ...
+        dc(:) = filterParam.cascade{1}.df{1}(rhof{1}) .* ...
                 filterParam.cascade{1}.GT{1}(dc(:).* ...
                     filterParam.cascade{1}.dg{1}(s{1,1})./ ...
                 filterParam.cascade{1}.Ni{1});
-%        Filter 2: close - use for volume...    
+%      Filter 2: close - use for volume...    
         for k = filterParam.cascade{2}.N:-1:2
             dv(:) = filterParam.cascade{2}.df{k}( ...
                     filterParam.cascade{2}.g{k-1}(s{k-1,2})).* ...
                 filterParam.cascade{2}.GT{k}(dv(:).* ...
-                    filterParam.cascade{2}.dg{k}(s{k,1})./ ...
+                    filterParam.cascade{2}.dg{k}(s{k,2})./ ...
                 filterParam.cascade{2}.Ni{k});
         end
-        dv(:) = filterParam.cascade{2}.df{1}(rho(:)) .* ...
+        dv(:) = filterParam.cascade{2}.df{1}(rhof{2}) .* ...
                 filterParam.cascade{2}.GT{1}(dv(:).* ...
                     filterParam.cascade{2}.dg{1}(s{1,2})./ ...
-                filterParam.cascade{2}.Ni{1});        
-            
-%         for k = filterParam.cascade{1}.N:-1:2
-%             dv(:) = filterParam.cascade{1}.df{k}( ...
-%                     filterParam.cascade{1}.g{k-1}(s{k-1,1})).* ...
-%                 filterParam.cascade{1}.GT{k}(dv(:).* ...
-%                     filterParam.cascade{1}.dg{k}(s{k,1})./ ...
-%                 filterParam.cascade{1}.Ni{k});
-%         end
-%         dv(:) = filterParam.cascade{1}.df{1}(rho(:)) .* ...
-%                 filterParam.cascade{1}.GT{1}(dv(:).* ...
-%                     filterParam.cascade{1}.dg{1}(s{1,1})./ ...
-%                 filterParam.cascade{1}.Ni{1});
+                filterParam.cascade{2}.Ni{1});
+                  
 
         dv = remove_padding(dv,param);
         dc = remove_padding(dc,param);
@@ -226,18 +219,21 @@ for m = 1:length(param.penal)
                 rhof{n} = min(1,max(rhof{n},0));
                 rhof{n} = remove_padding(rhof{n},param);
             end
-            rhonew = remove_padding(rhonew,param);
+            %rhonew = remove_padding(rhonew,param);
+            %rhonew = rhof{param.filt_type};
             % harry again!
-            if mean(rhof{param.filt_type}(param.comEl)) > volfrac
+            if mean(rhof{2}(param.comEl)) > volfrac %we want the close here!!!
                 l1 = lmid;
             else
                 l2 = lmid;
             end            
             
         end
+        %HARRY wtf?
+        %rhonew = rhof{param.filt_type};
         change = max(abs(rho-rhonew))*0.2/param.moves(m); %SNEAKY
         t2 = tic; 
-        % This is the movie stuff!!! --------------------------------------
+        %% This is the movie stuff!!! --------------------------------------
         if movie_plot
             if right_plot == false
             numsubplots = 2;
@@ -281,9 +277,9 @@ for m = 1:length(param.penal)
                 grid on
                 hold on
                 if m > 1
-                    plot(movie_iter_m(2:end),movie_J_m(2:end),'ro')
+                    plot(movie_iter_m(2:end)+5,movie_J_m(2:end),'ro')
                     for mm = 2:m
-                    text(movie_iter_m(mm),movie_J_m(mm),num2str(mm-1),...
+                    text(movie_iter_m(mm)+5,movie_J_m(mm),num2str(mm-1),...
                     'horizontalAlignment','center','verticalAlignment','top')
                 end
                 end
@@ -404,11 +400,12 @@ for m = 1:length(param.penal)
         fprintf(1,'Design: [%4.1e,%4.1e] Density: [%4.1e,%4.1e] ',...
             min(rho),max(rho),min(rhop),max(rhop));
         fprintf(1,'MND: %6.2f%% Vol: %5.3f change: %6.4f \n',...
-            400*rhop'*(1-rhop)/param.nel,mean(rhof{param.filt_type}(param.comEl)),change);
+            400*rhof{2}'*(1-rhof{2})/param.nel,mean(rhof{2}(param.comEl)),change); %the volume is calculated on the close!!
+        %%
         rho = rhonew;
         time2 = toc(t2);
         time1 = toc;
-        disp(num2str(time2/time1*100))
+        %disp(num2str(time2/time1*100))
     end
 end
 
