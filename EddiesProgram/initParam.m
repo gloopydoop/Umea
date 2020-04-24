@@ -36,7 +36,7 @@ if nargin<3
 end
 
 
-param.maxiter = 75;
+
 
 param.meshsize = meshsize;   %meshsize
 param.rFactor = rFactor;     %factor used to determing filter radius...
@@ -114,27 +114,32 @@ param.nUnknowns = length(param.comNodes);
 param.weakMaterial = 0.001;
 
 
-param.ocSmooth = 0.3;  %OC smoothing parameter (default = 1/2)
+param.ocSmooth = 1/2;  %OC smoothing parameter (default = 1/2)
 
 %% My changes to this
 penal1 = 1:0.5:3;
-%alpha1 = 10*ones(size(penal1));
-alpha2 = linspace(1,0.1,15);
-alpha1 = [10,5];
-penal1 = 3*ones(size(alpha1));
+alpha1 = 10*ones(size(penal1));
+alpha2 = 10.^(0.5:-0.5:-5);
 penal2 = 3*ones(size(alpha2));
-alpha3 = logspace(-1,-8,7);
+
+
+%alpha2 = linspace(1,0.1,15);
+%alpha1 = [10];
+%penal1 = 3*ones(size(alpha1));
+%penal2 = 3*ones(size(alpha2));
+%alpha3 = logspace(-1,-8,20);
 %alpha3 = linspace(0.05,0.0005,5);
-penal3 = 3*ones(size(alpha3));
-alpha2 = [1,0.1];
-penal2 = 3*ones(size(alpha2));
-%alpha3 = [];
-%penal3 = [];
+%penal3 = 3*ones(size(alpha3));
+%alpha2 = 1:-0.1:0.1
+%penal2 = 3*ones(size(alpha2));
+alpha3 = [];
+penal3 = [];
 param.penal = [penal1,penal2,penal3];  %SIMP penalty paramter (default = 3)
 param.alpha = [alpha1,alpha2,alpha3];
 param.moves = 0.2*ones(size(param.alpha));
-%param.moves(6:end) = 0.01;
-
+%param.moves(4:end) = 0.01;
+param.maxiter = 100*ones(size(param.alpha));
+%param.maxiter(2:4) = 750;
 % here is another path
 % penal1 = linspace(1,3,8);
 % alpha1 = 10.^(linspace(1,-1,8));
@@ -156,10 +161,9 @@ param.moves = 0.2*ones(size(param.alpha));
 % %If needed add explicit penalty to cover difference between open and close
 % %filter...
 param.coPower = 2;
-%param.coPenal = 0;
 
 
 param.saveresults = false;
 param.plotDesign = false;
 
-param.plotmod = 20;
+param.plotmod = 50;

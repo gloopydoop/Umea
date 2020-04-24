@@ -113,3 +113,5 @@ else
     filterParam.cascade{2}.Ni{1} = filterParam.cascade{1}.Ni{2};
     filterParam.cascade{2}.Ni{2} = filterParam.cascade{1}.Ni{1};
 end
+filterParam.minirad = 1*ones(size(param.alpha));
+filterParam.minismooth = @(x,r)(filterCirc(x,r,param));
