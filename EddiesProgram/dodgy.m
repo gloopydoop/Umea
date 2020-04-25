@@ -23,7 +23,7 @@ HarrysVolume = false;
 octFilter = false;
 volfrac = 0.5;
 
-rFactor = 5;
+rFactor = 1;
 %param.rFactor = rFactor ;
 [param] = initParam(meshsize,rFactor,octFilter);
 
