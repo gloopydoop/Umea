@@ -8,7 +8,7 @@ probe = figure();
 probe.Position(3) = figure_width;
 probe.Position(4) = figure_height;
 
-recompute = false;
+recompute = true;
 dx = 0.0005;
 L = 1;
 [param] = initParam2D(L/dx);
@@ -21,7 +21,8 @@ legstr = {};
 sym_map = {'o','+','*','.','>'};
 c_map = lines;
 r = 0.1:0.05:0.2;
-eps = [0.05, 0.01, 0.005, 0.001];
+eps = [0.001];
+%eps = [0.05, 0.01, 0.005, 0.001];
 alphas = linspace(0.001,0.1,20);
 
 if recompute == true
@@ -77,4 +78,4 @@ legend(legstr,'Location','southeast')
 
 set(gcf, 'PaperUnits', 'normalized')
 set(gcf,'renderer','Painters')
-saveas(gcf,'interp_data.eps','epsc')
+saveas(gcf,'interp_data_01.eps','epsc')
