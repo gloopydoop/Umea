@@ -8,7 +8,7 @@ probe = figure();
 probe.Position(3) = figure_width;
 probe.Position(4) = figure_height;
 
-dashes = false;
+dashes = true;
 
 dx = 0.001;
 L = 1;
@@ -18,10 +18,10 @@ x = 0:dx:dx*(param.nelx-1);
 rho = zeros(size(x));
 rho(1:floor(param.nelx/2)) = 1;
 
-param.r = 0.2/dx;
+param.r = 0.1/dx;
 param.eps = 0.1;
-alphas = [0.01,0.1,1];
-%alphas = [0.1];
+%alphas = [0.01,0.1,1];
+alphas = [0.1];
 plot(x,rho,'k','linewidth',2);
 c_map = lines;
 
@@ -66,4 +66,4 @@ ylim([-0.3,1.4])
 
 set(gcf, 'PaperUnits', 'normalized')
 set(gcf,'renderer','Painters')
-saveas(gcf,'withcolours.eps','epsc')
+saveas(gcf,'R10_andlines.eps','epsc')
