@@ -21,8 +21,7 @@ legstr = {};
 sym_map = {'o','+','*','.','>'};
 c_map = lines;
 r = 0.1:0.05:0.2;
-eps = [0.001];
-%eps = [0.05, 0.01, 0.005, 0.001];
+eps = [0.05, 0.01, 0.005, 0.001];
 alphas = linspace(0.001,0.1,20);
 
 if recompute == true
@@ -68,6 +67,7 @@ end
 xlabel('\beta')
 ylabel('Effective Smoothing ($\overline{R}$ /4R)','interpreter','latex')
 legend(legstr,'Location','southeast')
+ylim([0,1])
     
 %plot([x(floor(param.nelx/2)),x(floor(param.nelx/2)+param.r)],[-0.1,-0.1],'k')
 %text(mean([x(floor(param.nelx/2)),x(floor(param.nelx/2)+param.r)]),-0.05,'R','HorizontalAlignment','center')
@@ -76,6 +76,6 @@ legend(legstr,'Location','southeast')
 %text(x(floor(param.nelx/2)),-0.15,'4 x R','HorizontalAlignment','center')
 
 
-set(gcf, 'PaperUnits', 'normalized')
-set(gcf,'renderer','Painters')
-saveas(gcf,'interp_data_01.eps','epsc')
+% set(gcf, 'PaperUnits', 'normalized')
+% set(gcf,'renderer','Painters')
+% saveas(gcf,'interp_data_01.eps','epsc')
