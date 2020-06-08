@@ -21,8 +21,10 @@ legstr = {};
 sym_map = {'o','+','*','.','>'};
 c_map = lines;
 r = 0.1:0.05:0.2;
-eps = [0.05, 0.01, 0.005, 0.001];
-alphas = linspace(0.001,0.1,20);
+eps = [0.1,0.05, 0.01, 0.005, 0.001];
+alpha1 = linspace(0.001,0.01,20);
+alpha2 = linspace(0.01,0.1,20);
+alphas = [alpha1,alpha2(2:end)];
 
 if recompute == true
 for j = 1:length(r)
@@ -76,6 +78,6 @@ ylim([0,1])
 %text(x(floor(param.nelx/2)),-0.15,'4 x R','HorizontalAlignment','center')
 
 
-% set(gcf, 'PaperUnits', 'normalized')
-% set(gcf,'renderer','Painters')
-% saveas(gcf,'interp_data_01.eps','epsc')
+set(gcf, 'PaperUnits', 'normalized')
+set(gcf,'renderer','Painters')
+saveas(gcf,'interp_data.eps','epsc')
