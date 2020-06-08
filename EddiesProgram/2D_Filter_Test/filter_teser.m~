@@ -3,7 +3,7 @@ clc
 close all
 
  figure_width = 700;
-figure_height = 600;
+figure_height = 300;
 probe = figure();
 probe.Position(3) = figure_width;
 probe.Position(4) = figure_height;
@@ -74,7 +74,3 @@ legend(legstr,'Location','southeast')
 %plot([x(floor(param.nelx/2)-2*param.r),x(floor(param.nelx/2)+2*param.r)],[-0.2,-0.2],'k')
 %text(x(floor(param.nelx/2)),-0.15,'4 x R','HorizontalAlignment','center')
 
-
-set(gcf, 'PaperUnits', 'normalized')
-set(gcf,'renderer','Painters')
-saveas(gcf,'interp_data.eps','epsc')

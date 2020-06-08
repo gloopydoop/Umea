@@ -1,0 +1,9 @@
+ load('interp_info.mat')
+ 
+ beta_1 = 0.1;
+ R_1 = 0.1;
+ 
+ R_2 = 0.2;
+ for m = 1:length(eps)
+     R_ratio(m) = interp1(alphas,window_length(:,m,1),beta_1);
+     beta_predicted(m) = interp
