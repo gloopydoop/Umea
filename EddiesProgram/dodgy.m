@@ -23,12 +23,12 @@ HarrysVolume = false;
 octFilter = false;
 volfrac = 0.5;
 
-rFactor = 1;
+rFactor = 2;
 %param.rFactor = rFactor ;
 [param] = initParam(meshsize,rFactor,octFilter);
 
 % This is if I want a movie------------------------------------------------
-movie_plot = false;
+movie_plot = true;
 % Axis requirements
 movie_max_iterations = sum(param.maxiter);
 movie_frameskip = 10;
@@ -70,7 +70,7 @@ if HarrysVolume == true
 end
 
 
-filterParam = initFilter(param,param.alpha(1),true);
+filterParam = initFilter(param,param.alpha(1));
 
 % This is where we have rho_omega
 % one means it's in the domain
@@ -106,8 +106,9 @@ for m = 1:length(param.penal)
 
 
     s = cell(filterParam.Nmax,filterParam.numCascades);
-    rho = start_padding(rho(:),param);
+    
     rho = rhof{2}; % THEY PICK THE CLOSE HERE
+    rho = start_padding(rho(:),param,1);
     % Harry being sneaky!
     %if m == 1
     
@@ -125,9 +126,11 @@ for m = 1:length(param.penal)
         rhof{n} = remove_padding(rhof{n},param);
 
     %end
-    rhof{param.filt_type} = remove_padding(rhof{param.filt_type},param);
+    %rhof{param.filt_type} = remove_padding(rhof{param.filt_type},param);
     %rho = rhof{param.filt_type}; % THIS one is sketch
+    
     end
+    rho = remove_padding(rho,param);
     %end
     while change > 0.005 && inneriter<param.maxiter(m)
         tic;
@@ -160,10 +163,10 @@ for m = 1:length(param.penal)
             dc = (1-param.weakMaterial)*dcdap;
         end
         % HARRY being sneaky 
-        dc = start_padding(dc,param);
-        dv = start_padding(ones(param.nel,1),param);
-        dvo = start_padding(ones(param.nel,1),param);
-        rho = start_padding(rho(:),param);
+        dc = start_padding(dc,param,1);
+        dv = start_padding(ones(param.nel,1),param,0);
+        dvo = start_padding(ones(param.nel,1),param,1);
+        rho = start_padding(rho(:),param,0);
         %dv = reshape((1-param.nullel),param.nelx*param.nely,1);      
         
         %% MODIFICATION OF SENSITIVITIES
@@ -236,7 +239,7 @@ for m = 1:length(param.penal)
                      rho.*scaleX)))); 
             
             %% FILTERING OF DESIGN VARIABLES
-            rhonew = start_padding(rhonew(:),param);
+            rhonew = start_padding(rhonew(:),param,1);
             for n = 1:filterParam.numCascades
                 s{1,n} = filterParam.cascade{n}.G{1}(...
                     filterParam.cascade{n}.f{1}(rhonew(:)))./filterParam.cascade{n}.Ni{1};
@@ -251,7 +254,7 @@ for m = 1:length(param.penal)
                 rhof{n} = min(1,max(rhof{n},0));
                 rhof{n} = remove_padding(rhof{n},param);
             end
-            %rhonew = remove_padding(rhonew,param);
+            rhonew = remove_padding(rhonew,param);
             %rhonew = rhof{param.filt_type};
             % harry again!
             if mean(rhof{2}(param.comEl)) > volfrac %we want the close here!!!

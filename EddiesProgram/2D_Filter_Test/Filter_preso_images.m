@@ -2,6 +2,12 @@ clear all
 clc
 close all
 
+figure_width = 700;
+figure_height = 400;
+probe = figure();
+probe.Position(3) = figure_width;
+probe.Position(4) = figure_height;
+
 dashes = false;
 
 dx = 0.001;
@@ -18,6 +24,7 @@ param.eps = 0.1;
 alphas = [0.1];
 plot(x,rho,'k','linewidth',2);
 c_map = lines;
+
 for n = 1:length(alphas)
     filterParam =  initFilter_2D(param,alphas(n));
     s{1,n} = filterParam.cascade{1}.G{1}(...
@@ -55,3 +62,8 @@ text(x(floor(param.nelx/2)),-0.15,'4 x R','HorizontalAlignment','center')
 %legend([filt(1),filt(2),filt(3)],num2str(alphas))
 xlabel('Physical length')
 ylabel('\rho')
+ylim([-0.3,1.2])
+
+set(gcf, 'PaperUnits', 'normalized')
+set(gcf,'renderer','Painters')
+saveas(gcf,'Mcenter.eps','epsc')

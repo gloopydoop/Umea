@@ -132,6 +132,8 @@ penal2 = 3*ones(size(alpha2));
 %penal3 = 3*ones(size(alpha3));
 %alpha2 = 1:-0.1:0.1
 %penal2 = 3*ones(size(alpha2));
+%alpha2 = [];
+%penal2 = [];
 alpha3 = [];
 penal3 = [];
 param.penal = [penal1,penal2,penal3];  %SIMP penalty paramter (default = 3)

@@ -3,6 +3,7 @@ if nargin<3
     extraFix = false;
 end
 
+extraFix = true;
 
 filterParam.numCascades = 2;
 filterParam.Nmax = 2; %maximum number of filters in any cascade
@@ -10,7 +11,7 @@ filterParam.cascade = cell(filterParam.numCascades,1);
 
 
 N = 2;                                  %number of filters in each cascade
-r = [1,5]*param.rFactor; %radius in pixels...
+r = [1,1]*param.rFactor; %radius in pixels...
 
 %filter 1: harmonic open
 filterParam.cascade{1}.N = N;
@@ -59,6 +60,7 @@ end
 filterParam.cascade{1}.GT = filterParam.cascade{1}.G;    
 
 oneVec = ones(param.nelx*param.nely,1);
+oneVec = start_padding(oneVec,param,1);
 for nn = 1:N
     filterParam.cascade{1}.Ni{nn} = filterParam.cascade{1}.G{nn}(oneVec);
 end
@@ -95,8 +97,8 @@ filterParam.cascade{2}.dg{1} = filterParam.cascade{1}.dg{2};
 filterParam.cascade{2}.dg{2} = filterParam.cascade{1}.dg{1};
 
 if extraFix
-        filterParam.cascade{2}.G{1} = @(x)(filterOct(x,r(1),param));
-        filterParam.cascade{2}.G{2} = @(x)(filterOct(x,r(2),param));
+        filterParam.cascade{2}.G{1} = @(x)(filterCirc(x,r(2),param));
+        filterParam.cascade{2}.G{2} = @(x)(filterCirc(x,r(1),param));
 else
     filterParam.cascade{2}.G{1} = filterParam.cascade{1}.G{2};
     filterParam.cascade{2}.G{2} = filterParam.cascade{1}.G{1};
@@ -106,6 +108,7 @@ filterParam.cascade{2}.GT = filterParam.cascade{2}.G;
 
 if extraFix
     oneVec = ones(param.nelx*param.nely,1);
+    %oneVec = start_padding(oneVec,param,1);
     for nn = 1:N
         filterParam.cascade{2}.Ni{nn} = filterParam.cascade{2}.G{nn}(oneVec);
     end

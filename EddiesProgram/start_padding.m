@@ -1,9 +1,9 @@
-function x_padded = start_padding(x,param)
+function x_padded = start_padding(x,param,padval)
 % HARRY BEING SNEAKY AGAIN!
 pad = param.rFactor + 1;
 line_BCs = reshape(1-param.nullel,param.nely,param.nelx);
 if param.boundary_treatment == 1
-    background = zeros(param.sizey,param.sizex);
+    background =padval*ones(param.sizey,param.sizex);
     x(find(line_BCs == 0)) = 0;
     background(pad+1:end-pad,pad+1:end-pad) = reshape(x,param.nely,param.nelx);
     x = reshape(background,(param.nelx +2*pad)*(param.nely +2*pad),1);
